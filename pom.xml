@@ -19,6 +19,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- aop -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+
         <!--        不需要再引入-->
         <!--        <dependency>-->
         <!--            <groupId>org.mybatis.spring.boot</groupId>-->
@@ -26,11 +33,27 @@
         <!--            <version>2.3.0</version>-->
         <!--        </dependency>-->
 
-        <!--        mybatis-plus-->
+        <!-- mybatis-plus: https://baomidou.com/getting-started/#spring-boot2-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.5.9</version>
+        </dependency>
+
+
+        <!-- hutool: https://doc.hutool.cn/pages/index/#%F0%9F%8D%8Amaven-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.26</version>
+        </dependency>
+
+
+        <!-- knife4j: https://doc.xiaominfo.com/docs/quick-start#spring-boot-2-->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+            <version>4.4.0</version>
         </dependency>
 
 
