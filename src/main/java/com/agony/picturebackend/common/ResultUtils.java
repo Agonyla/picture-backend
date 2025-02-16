@@ -5,7 +5,7 @@ import com.agony.picturebackend.exception.ErrorCode;
 /**
  * @author: Agony
  * @create: 2025/2/16 14:21
- * @describe:
+ * @describe: 返回请求工具类
  */
 public class ResultUtils {
 

@@ -1,5 +1,7 @@
 package com.agony.picturebackend.controller;
 
+import com.agony.picturebackend.common.BaseResponse;
+import com.agony.picturebackend.common.ResultUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,8 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     @GetMapping("/health")
-    public String health() {
-        return "hello";
+    public BaseResponse<String> health() {
+        return ResultUtils.success("ok");
     }
+
 
 }

@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 /**
  * @author: Agony
  * @create: 2025/2/15 17:21
- * @describe:
+ * @describe: 响应包装类
  */
 @Data
 @Accessors(chain = true)

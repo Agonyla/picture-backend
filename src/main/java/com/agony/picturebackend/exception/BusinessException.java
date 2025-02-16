@@ -5,7 +5,7 @@ import lombok.Getter;
 /**
  * @author: Agony
  * @create: 2025/2/16 13:55
- * @describe:
+ * @describe: 自定义业务异常
  */
 
 @Getter
