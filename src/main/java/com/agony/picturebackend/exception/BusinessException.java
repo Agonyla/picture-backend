@@ -17,6 +17,8 @@ public class BusinessException extends RuntimeException {
      */
     private final int code;
 
+    
+    private static final long serialVersionUID = 1L;
 
     public BusinessException(int code, String message) {
         super(message);
