@@ -1,5 +1,6 @@
 package com.agony.picturebackend.common;
 
+import com.agony.picturebackend.exception.ErrorCode;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -12,13 +13,32 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class BaseResponse<T> {
 
-    // todo 加一个时间戳字段  private long timestamp;
-
 
     private int code;
+
     private String message;
+
     private T data;
+
     private long timestamp;
 
+    // public BaseResponse() {
+    //     this.timestamp = System.currentTimeMillis();
+    // }
 
+    public BaseResponse(int code, String message, T data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    public BaseResponse(int code, T data) {
+        this(code, "", data);
+    }
+
+
+    public BaseResponse(ErrorCode errorCode) {
+        this(errorCode.getCode(), errorCode.getMessage(), null);
+    }
 }
