@@ -1,12 +1,15 @@
 package com.agony.picturebackend.model.enums;
 
 import cn.hutool.core.util.ObjectUtil;
+import lombok.Getter;
 
 /**
  * @author: Agony
  * @create: 2025/2/19 21:25
  * @describe: 用户枚举类
  */
+
+@Getter
 public enum UserRoleEnum {
 
     USER("用户", "user"),

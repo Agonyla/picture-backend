@@ -1,38 +1,27 @@
-package com.agony.picturebackend.model.entity;
+package com.agony.picturebackend.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户
- *
- * @TableName user
+ * @author: Agony
+ * @create: 2025/2/20 15:57
+ * @describe:
  */
-@TableName(value = "user")
 @Data
-@Accessors(chain = true)
-public class User {
+public class LoginUserVO implements Serializable {
+
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
      * 账号
      */
     private String userAccount;
-
-    /**
-     * 密码
-     */
-    private String userPassword;
 
     /**
      * 用户昵称
@@ -68,10 +57,8 @@ public class User {
      * 更新时间
      */
     private Date updateTime;
+    
 
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
+    private static final long serialVersionUID = -5061879079254973566L;
+
 }
