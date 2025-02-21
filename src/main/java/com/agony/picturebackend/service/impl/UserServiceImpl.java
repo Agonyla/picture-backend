@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.agony.picturebackend.constant.UserConstant;
 import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
+import com.agony.picturebackend.exception.ThrowUtils;
 import com.agony.picturebackend.mapper.UserMapper;
 import com.agony.picturebackend.model.entity.User;
 import com.agony.picturebackend.model.enums.UserRoleEnum;
@@ -109,8 +110,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String encryptPassword = getEncryptPassword(userPassword);
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
-        queryWrapper.eq("usePassword", encryptPassword);
+        queryWrapper.eq("userPassword", encryptPassword);
         User user = userMapper.selectOne(queryWrapper);
+
+        // User user = this.baseMapper.selectOne(queryWrapper);
+
         if (user == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号不存在或密码错误");
         }
@@ -135,6 +139,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         LoginUserVO loginUserVO = new LoginUserVO();
         BeanUtil.copyProperties(user, loginUserVO);
         return loginUserVO;
+    }
+
+    /**
+     * 获取当前登录用户信息
+     *
+     * @param request http请求
+     * @return 当前登录用户
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        Object loginUserObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        User currentUser = (User) loginUserObj;
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+
+        return currentUser;
+    }
+
+    /**
+     * 用户注销
+     *
+     * @param request http请求http请求
+     * @return 返回是否注销成功
+     */
+    @Override
+    public boolean userLogout(HttpServletRequest request) {
+
+        // 先判断是否登录
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        ThrowUtils.throwIf(userObj == null, ErrorCode.NOT_LOGIN_ERROR);
+
+        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+
+        return true;
     }
 
     /**
