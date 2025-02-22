@@ -15,6 +15,7 @@ import com.agony.picturebackend.model.vo.LoginUserVO;
 import com.agony.picturebackend.model.vo.UserVO;
 import com.agony.picturebackend.service.UserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,6 +28,7 @@ import java.util.List;
  * @describe:
  */
 
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -130,7 +132,13 @@ public class UserController {
         final String DEFAULT_PASSWORD = "12345678";
         String encryptPassword = userService.getEncryptPassword(DEFAULT_PASSWORD);
         user.setUserPassword(encryptPassword);
-        boolean result = userService.save(user);
+
+        boolean result = false;
+        try {
+            result = userService.save(user);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "用户添加失败");
 
         return ResultUtils.success(user.getId());
