@@ -1,6 +1,8 @@
 package com.agony.picturebackend.aop;
 
 import com.agony.picturebackend.annotation.AuthCheck;
+import com.agony.picturebackend.exception.BusinessException;
+import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.model.entity.User;
 import com.agony.picturebackend.model.enums.UserRoleEnum;
 import com.agony.picturebackend.service.UserService;
@@ -46,7 +48,7 @@ public class AuthInterceptor {
     public Object doInterceptor(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
 
 
-        String mustRole = authCheck.mustRole;
+        String mustRole = authCheck.mustRole();
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
 
@@ -66,10 +68,15 @@ public class AuthInterceptor {
         // region 以下为：必须有该权限才能通过
 
 
-        // todo 校验权限
+        // 要求必须要管理员权限，但是用户权限不是管理员，则拒绝
+        if (UserRoleEnum.ADMIN.equals(mustRoleEnum) && !UserRoleEnum.ADMIN.equals(userRoleEnum)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+
+        // 还可以添加更多的权限校验。。。
         // endregion
 
-        return null;
+        return joinPoint.proceed();
     }
 
 }

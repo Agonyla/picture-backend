@@ -1,10 +1,14 @@
 package com.agony.picturebackend.service;
 
+import com.agony.picturebackend.model.dto.user.UserQueryRequest;
 import com.agony.picturebackend.model.entity.User;
 import com.agony.picturebackend.model.vo.LoginUserVO;
+import com.agony.picturebackend.model.vo.UserVO;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author agony
@@ -62,6 +66,32 @@ public interface UserService extends IService<User> {
      */
     boolean userLogout(HttpServletRequest request);
 
+
+    /**
+     * 获取用户视图
+     *
+     * @param user 用户
+     * @return 用户视图
+     */
+    UserVO getUserVO(User user);
+
+
+    /**
+     * 获取用户列表视图
+     *
+     * @param list 用户列表
+     * @return 用户列表视图
+     */
+    List<UserVO> getUserVOList(List<User> list);
+
+
+    /**
+     * 获取查询条件
+     *
+     * @param userQueryRequest 用户查询请求
+     * @return 用户查询wrapper
+     */
+    QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
     /**
      * 获取加密后的密码

@@ -1,23 +1,30 @@
 package com.agony.picturebackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.agony.picturebackend.constant.UserConstant;
 import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.exception.ThrowUtils;
 import com.agony.picturebackend.mapper.UserMapper;
+import com.agony.picturebackend.model.dto.user.UserQueryRequest;
 import com.agony.picturebackend.model.entity.User;
 import com.agony.picturebackend.model.enums.UserRoleEnum;
 import com.agony.picturebackend.model.vo.LoginUserVO;
+import com.agony.picturebackend.model.vo.UserVO;
 import com.agony.picturebackend.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author agony
@@ -25,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
  * @createDate 2025-02-19 21:19:19
  */
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
 
@@ -77,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .setUserPassword(encryptPassword)
                 .setUserName("无名")
                 .setUserRole(UserRoleEnum.USER.getValue());
-        int insert = userMapper.insert(user);
+        userMapper.insert(user);
         return user.getId();
     }
 
@@ -174,6 +182,79 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
 
         return true;
+    }
+
+
+    /**
+     * 获取用户视图
+     *
+     * @param user 用户
+     * @return 用户视图
+     */
+    @Override
+    public UserVO getUserVO(User user) {
+
+        if (user == null) {
+            return null;
+        }
+
+        UserVO userVO = new UserVO();
+        try {
+            BeanUtil.copyProperties(user, userVO);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return userVO;
+    }
+
+    /**
+     * 获取用户列表视图
+     *
+     * @param list 用户列表
+     * @return 用户列表视图
+     */
+    @Override
+    public List<UserVO> getUserVOList(List<User> list) {
+
+        if (CollectionUtil.isEmpty(list)) {
+            return null;
+        }
+
+        return list.stream().map(this::getUserVO).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取查询条件
+     *
+     * @param userQueryRequest 用户查询请求
+     * @return 用户查询wrapper
+     */
+    @Override
+    public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
+
+        if (userQueryRequest == null) {
+            return null;
+        }
+
+        Long id = userQueryRequest.getId();
+        String userName = userQueryRequest.getUserName();
+        String userAccount = userQueryRequest.getUserAccount();
+        String userProfile = userQueryRequest.getUserProfile();
+        String userRole = userQueryRequest.getUserRole();
+        String sortField = userQueryRequest.getSortField();
+        String sortOrder = userQueryRequest.getSortOrder();
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(ObjUtil.isNotNull(id), "id", id);
+        queryWrapper.eq(StrUtil.isNotBlank(userRole), "userRole", userRole);
+        queryWrapper.like(StrUtil.isNotBlank(userAccount), "userAccount", userAccount);
+        queryWrapper.like(StrUtil.isNotBlank(userName), "userName", userName);
+        queryWrapper.like(StrUtil.isNotBlank(userProfile), "userProfile", userProfile);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        return queryWrapper;
+
+
     }
 
     /**
