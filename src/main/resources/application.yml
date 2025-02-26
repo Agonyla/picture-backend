@@ -7,6 +7,9 @@ server:
 spring:
   application:
     name: picture-backend
+
+  profiles:
+    active: local
   
   
   # 数据库
