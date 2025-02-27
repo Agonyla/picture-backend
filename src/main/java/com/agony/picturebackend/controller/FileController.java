@@ -7,15 +7,19 @@ import com.agony.picturebackend.constant.UserConstant;
 import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.manager.CosManager;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.utils.IOUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author: Agony
@@ -57,7 +61,9 @@ public class FileController {
         try {
             file = File.createTempFile(filePath, null);
             multipartFile.transferTo(file);
-            cosManager.putObject(filePath, file);
+            PutObjectResult putObjectResult = cosManager.putObject(filePath, file);
+            log.info(String.valueOf(putObjectResult));
+            // log.info(putObjectResult.getRequestId() + "-----------------------");
             // 返回可访问的文件地址
             return ResultUtils.success(filePath);
 
@@ -74,5 +80,54 @@ public class FileController {
                 }
             }
         }
+    }
+
+
+    /**
+     * 下载对象测试
+     *
+     * @param filePath 文件路径
+     * @param response servlet相应
+     */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @GetMapping("/test/download")
+    public BaseResponse<String> testDownloadFile(String filePath, HttpServletResponse response) throws IOException {
+
+        InputStream cosObjectInput = null;
+
+        try {
+            COSObject cosObject = cosManager.getObject(filePath);
+            cosObjectInput = cosObject.getObjectContent();
+
+            // 处理下载到的流
+            byte[] bytes = IOUtils.toByteArray(cosObjectInput);
+
+            // 设置响应头
+            // response.setContentType("application/octet-stream;charset=UTF-8");
+            // response.setHeader("Content-Disposition", "attachment; filename=" + filePath);
+            //
+            // // 写入相应
+            // response.getOutputStream().write(bytes);
+            // response.getOutputStream().flush();
+
+            // 本地路径
+            String localFilePath = "D:/Agony/Desktop/downloadTest" + filePath;
+
+            log.info(localFilePath);
+
+            FileOutputStream fos = new FileOutputStream(localFilePath);
+            fos.write(bytes);
+            return ResultUtils.success("文件保存成功：" + localFilePath);
+
+        } catch (IOException e) {
+            log.error("file download error, filePath = {}", filePath, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件保存到本地失败");
+        } finally {
+            if (cosObjectInput != null) {
+                cosObjectInput.close();
+            }
+        }
+
+
     }
 }
