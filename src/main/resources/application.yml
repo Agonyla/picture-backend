@@ -49,3 +49,5 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.agony.picturebackend.controller
+
+
