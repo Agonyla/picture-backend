@@ -15,6 +15,10 @@ public class PictureUploadRequest implements Serializable {
 
     private static final long serialVersionUID = -8000588394943438406L;
 
+
+    /**
+     * 图片id （用于修改）
+     */
     private Long id;
 
 }
