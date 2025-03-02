@@ -36,7 +36,10 @@ public class FileController {
     @Resource
     private CosManager cosManager;
 
+
     /**
+     * 测试文件上传
+     *
      * @param multipartFile 文件上传接口
      * @return 返回可访问的文件地址
      */
