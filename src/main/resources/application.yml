@@ -8,10 +8,15 @@ spring:
   application:
     name: picture-backend
 
+  # 激活的配置文件
   profiles:
     active: local
-  
-  
+
+  # 开放更大的文件上传体积
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
   # 数据库
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

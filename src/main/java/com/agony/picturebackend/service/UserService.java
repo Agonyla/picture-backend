@@ -86,6 +86,15 @@ public interface UserService extends IService<User> {
 
 
     /**
+     * 是否为管理员
+     *
+     * @param user 用户
+     * @return 是否为管理员
+     */
+    Boolean isAdmin(User user);
+
+
+    /**
      * 获取查询条件
      *
      * @param userQueryRequest 用户查询请求
