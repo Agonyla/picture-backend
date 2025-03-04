@@ -20,6 +20,9 @@ public class PictureBackendApplication {
         // todo User类可以加一个 @Accessors(chain = true) 注解
 
         // todo 在写UserService的业务逻辑时，不要用 throw new BusinessException, 试着用 ThrowUtils.throwIf()
+
+
+        // todo 关于后端模板设计模式那里，yupi是直接使用了Object，是否可以改成泛型
     }
 
 }
