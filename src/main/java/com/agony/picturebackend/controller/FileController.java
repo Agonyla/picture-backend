@@ -113,7 +113,7 @@ public class FileController {
             // response.getOutputStream().write(bytes);
             // response.getOutputStream().flush();
 
-            // 本地路径
+            // 本地路径  filePath 是 /test/xxx.jpg。 所以本地路径必须要有 /test文件夹
             String localFilePath = "D:/Agony/Desktop/downloadTest" + filePath;
 
             log.info(localFilePath);
