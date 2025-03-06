@@ -1,6 +1,7 @@
 package com.agony.picturebackend.service;
 
 import com.agony.picturebackend.model.dto.picture.PictureQueryRequest;
+import com.agony.picturebackend.model.dto.picture.PictureReviewRequest;
 import com.agony.picturebackend.model.dto.picture.PictureUploadRequest;
 import com.agony.picturebackend.model.entity.Picture;
 import com.agony.picturebackend.model.entity.User;
@@ -37,6 +38,23 @@ public interface PictureService extends IService<Picture> {
      */
     PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser);
 
+
+    /**
+     * 图片审核
+     *
+     * @param pictureReviewRequest 图片审核请求
+     * @param loginUser            登录用户
+     */
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+
+
+    /**
+     * 填充审核参数
+     *
+     * @param picture   图片
+     * @param loginUser 登录用户
+     */
+    void fillReviewParams(Picture picture, User loginUser);
 
     /**
      * 获取查询对象

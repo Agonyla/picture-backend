@@ -9,12 +9,10 @@ import com.agony.picturebackend.constant.UserConstant;
 import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.exception.ThrowUtils;
-import com.agony.picturebackend.model.dto.picture.PictureEditRequest;
-import com.agony.picturebackend.model.dto.picture.PictureQueryRequest;
-import com.agony.picturebackend.model.dto.picture.PictureUpdateRequest;
-import com.agony.picturebackend.model.dto.picture.PictureUploadRequest;
+import com.agony.picturebackend.model.dto.picture.*;
 import com.agony.picturebackend.model.entity.Picture;
 import com.agony.picturebackend.model.entity.User;
+import com.agony.picturebackend.model.enums.PictureReviewStatusEnum;
 import com.agony.picturebackend.model.vo.PictureTagCategory;
 import com.agony.picturebackend.model.vo.PictureVO;
 import com.agony.picturebackend.service.PictureService;
@@ -57,7 +55,7 @@ public class PictureController {
      * @param request              http请求
      * @return 图片视图
      */
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    // @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @PostMapping("/upload")
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, HttpServletRequest request) {
 
@@ -100,11 +98,12 @@ public class PictureController {
      * 更新图片 （仅管理员）
      *
      * @param pictureUpdateRequest 图片更新请求
+     * @param request              http请求
      * @return 是否更新成功
      */
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @PostMapping("/update")
-    public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
+    public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
 
         if (pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "更新图片请求为空");
@@ -120,6 +119,11 @@ public class PictureController {
         long id = pictureUpdateRequest.getId();
         Picture oldPicture = pictureService.getById(id);
         ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+
+        // 补充审核参数
+        User loginUser = userService.getLoginUser(request);
+        pictureService.fillReviewParams(picture, loginUser);
+
         // 操作数据库
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -194,6 +198,10 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+
+        // 普通用户默认只能看到审核通过的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.ACCEPT.getValue());
+
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
                 pictureService.getQueryWrapper(pictureQueryRequest));
@@ -224,6 +232,10 @@ public class PictureController {
         // 数据校验
         pictureService.validPicture(picture);
         User loginUser = userService.getLoginUser(request);
+
+        // 补充审核参数
+        pictureService.fillReviewParams(picture, loginUser);
+
         // 判断是否存在
         long id = pictureEditRequest.getId();
         Picture oldPicture = pictureService.getById(id);
@@ -251,6 +263,26 @@ public class PictureController {
         pictureTagCategory.setTagList(tagList);
         pictureTagCategory.setCategoryList(categoryList);
         return ResultUtils.success(pictureTagCategory);
+    }
+
+
+    /**
+     * 图片审核 （仅管理员）
+     *
+     * @param pictureReviewRequest
+     * @param request
+     * @return
+     */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @PostMapping("/review")
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest, HttpServletRequest request) {
+
+        ThrowUtils.throwIf(pictureReviewRequest == null, ErrorCode.PARAMS_ERROR, "审核请求为空");
+
+        User loginUser = userService.getLoginUser(request);
+        pictureService.doPictureReview(pictureReviewRequest, loginUser);
+        return ResultUtils.success(true);
+
     }
 
 }

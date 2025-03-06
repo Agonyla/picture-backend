@@ -1,17 +1,21 @@
 package com.agony.picturebackend.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.exception.ThrowUtils;
 import com.agony.picturebackend.manager.FileManager;
 import com.agony.picturebackend.mapper.PictureMapper;
 import com.agony.picturebackend.model.dto.file.UploadPictureResult;
 import com.agony.picturebackend.model.dto.picture.PictureQueryRequest;
+import com.agony.picturebackend.model.dto.picture.PictureReviewRequest;
 import com.agony.picturebackend.model.dto.picture.PictureUploadRequest;
 import com.agony.picturebackend.model.entity.Picture;
 import com.agony.picturebackend.model.entity.User;
+import com.agony.picturebackend.model.enums.PictureReviewStatusEnum;
 import com.agony.picturebackend.model.vo.PictureVO;
 import com.agony.picturebackend.model.vo.UserVO;
 import com.agony.picturebackend.service.PictureService;
@@ -98,8 +102,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 更新图片，需要校验图片是否存在
         if (pictureId != null) {
-            boolean exists = this.lambdaQuery().eq(Picture::getId, pictureId).exists();
-            ThrowUtils.throwIf(!exists, ErrorCode.NOT_FOUND_ERROR);
+
+            Picture oldPicture = pictureMapper.selectById(pictureId);
+            ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+
+            // 判断是否是管理员或者是本人
+            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
         }
 
 
@@ -119,6 +129,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicFormat(uploadPictureResult.getPicFormat());
         picture.setUserId(loginUser.getId());
 
+        // 补充审核参数
+        fillReviewParams(picture, loginUser);
+
         // 如果是更新需要传入 pictureId 和 编辑时间
         if (pictureId != null) {
             picture.setId(pictureId);
@@ -129,6 +142,69 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
 
         return PictureVO.objToVo(picture);
+    }
+
+    /**
+     * 图片审核
+     *
+     * @param pictureReviewRequest 图片审核请求
+     * @param loginUser            登录用户
+     */
+    @Override
+    public void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser) {
+
+        Long pictureId = pictureReviewRequest.getId();
+        // 请求校验
+        ThrowUtils.throwIf(pictureReviewRequest.getId() <= 0, ErrorCode.PARAMS_ERROR, "图片审核id不存在");
+
+
+        Integer reviewStatus = pictureReviewRequest.getReviewStatus();
+        PictureReviewStatusEnum pictureReviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
+
+        if (pictureReviewStatusEnum == null || PictureReviewStatusEnum.REVIEWING.equals(pictureReviewStatusEnum)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片审核状态有误");
+        }
+
+        // 判断请求图片时候在数据库中存在
+        Picture oldPicture = pictureMapper.selectById(pictureId);
+        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+
+        // 已是该状态
+        if (oldPicture.getReviewStatus().equals(reviewStatus)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请勿重复审核");
+        }
+
+        // 更新状态
+        Picture newPicture = new Picture();
+        BeanUtil.copyProperties(pictureReviewRequest, newPicture);
+        newPicture.setReviewerId(loginUser.getId());
+        newPicture.setReviewTime(new Date());
+        int count = pictureMapper.updateById(newPicture);
+        ThrowUtils.throwIf(count <= 0, ErrorCode.OPERATION_ERROR, "操作失败");
+
+
+    }
+
+    /**
+     * 填充审核参数
+     *
+     * @param picture   图片
+     * @param loginUser 登录用户
+     */
+    @Override
+    public void fillReviewParams(Picture picture, User loginUser) {
+
+        if (userService.isAdmin(loginUser)) {
+
+            // 管理员自动过审核
+            picture.setReviewerId(loginUser.getId());
+            picture.setReviewStatus(PictureReviewStatusEnum.ACCEPT.getValue());
+            picture.setReviewMessage("管理员自动过审");
+            picture.setReviewTime(new Date());
+        } else {
+            // 非管理员，创建、编辑等都需设置为待审核
+            picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
+        }
     }
 
 
@@ -160,6 +236,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long userId = pictureQueryRequest.getUserId();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
+        Integer reviewStatus = pictureQueryRequest.getReviewStatus();
+        String reviewMessage = pictureQueryRequest.getReviewMessage();
+        Long reviewerId = pictureQueryRequest.getReviewerId();
         // 从多字段中搜索
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件
@@ -171,6 +250,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             );
         }
 
+
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
         queryWrapper.like(StrUtil.isNotBlank(name), "name", name);
@@ -181,6 +261,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picHeight), "picHeight", picHeight);
         queryWrapper.eq(ObjUtil.isNotEmpty(picSize), "picSize", picSize);
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "picScale", picScale);
+
+        queryWrapper.eq(ObjUtil.isNotEmpty(reviewStatus), "reviewStatus", reviewStatus);
+        queryWrapper.like(StrUtil.isNotBlank(reviewMessage), "reviewMessage", reviewMessage);
+        queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
+        
         // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
             /* and (tag like "%\"Java\"%" and like "%\"Python\"%") */
