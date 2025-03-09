@@ -66,6 +66,43 @@ public class PictureController {
 
 
     /**
+     * URL 上传图片 （可重新上传）
+     *
+     * @param pictureUploadRequest 更新
+     * @param request              http请求
+     * @return 图片视图
+     */
+    // @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @PostMapping("/upload/url")
+    public BaseResponse<PictureVO> uploadPictureByURL(PictureUploadRequest pictureUploadRequest, HttpServletRequest request) {
+
+        User loginUser = userService.getLoginUser(request);
+        String fileURL = pictureUploadRequest.getFileURL();
+        PictureVO pictureVO = pictureService.uploadPicture(fileURL, pictureUploadRequest, loginUser);
+        return ResultUtils.success(pictureVO);
+    }
+
+
+    /**
+     * 批量抓取图片
+     *
+     * @param pictureUploadByBatchRequest 更新
+     * @param request                     http请求
+     * @return 抓取数量
+     */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @PostMapping("/upload/batch")
+    public BaseResponse<Integer> uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, HttpServletRequest request) {
+
+        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR, "抓取请求为空");
+
+        User loginUser = userService.getLoginUser(request);
+        Integer count = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(count);
+    }
+
+
+    /**
      * 删除图片
      *
      * @param deleteRequest 删除请求
