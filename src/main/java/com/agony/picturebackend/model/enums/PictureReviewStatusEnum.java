@@ -3,6 +3,8 @@ package com.agony.picturebackend.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * @author: Agony
  * @create: 2025/3/6 20:49
@@ -18,7 +20,7 @@ public enum PictureReviewStatusEnum {
 
 
     private final String text;
-    private final int value;
+    private final Integer value;
 
     PictureReviewStatusEnum(String text, int value) {
         this.text = text;
@@ -36,7 +38,7 @@ public enum PictureReviewStatusEnum {
             return null;
         }
         for (PictureReviewStatusEnum pictureReviewStatusEnum : PictureReviewStatusEnum.values()) {
-            if (pictureReviewStatusEnum.value == value) {
+            if (Objects.equals(pictureReviewStatusEnum.value, value)) {
                 return pictureReviewStatusEnum;
             }
         }

@@ -16,7 +16,7 @@ public class UploadPictureResult implements Serializable {
 
 
     private static final long serialVersionUID = -3452385465906430376L;
-    
+
     /**
      * 图片地址
      */
@@ -35,12 +35,12 @@ public class UploadPictureResult implements Serializable {
     /**
      * 图片宽度
      */
-    private int picWidth;
+    private Integer picWidth;
 
     /**
      * 图片高度
      */
-    private int picHeight;
+    private Integer picHeight;
 
     /**
      * 图片宽高比
