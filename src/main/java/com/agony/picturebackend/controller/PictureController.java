@@ -18,6 +18,8 @@ import com.agony.picturebackend.model.vo.PictureVO;
 import com.agony.picturebackend.service.PictureService;
 import com.agony.picturebackend.service.UserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/picture")
+@Api(tags = "图片模块")
 public class PictureController {
 
 
@@ -56,6 +59,7 @@ public class PictureController {
      * @return 图片视图
      */
     // @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @ApiOperation(value = "上传图片")
     @PostMapping("/upload")
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, HttpServletRequest request) {
 
@@ -73,6 +77,7 @@ public class PictureController {
      * @return 图片视图
      */
     // @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @ApiOperation(value = "URL 上传图片")
     @PostMapping("/upload/url")
     public BaseResponse<PictureVO> uploadPictureByURL(PictureUploadRequest pictureUploadRequest, HttpServletRequest request) {
 

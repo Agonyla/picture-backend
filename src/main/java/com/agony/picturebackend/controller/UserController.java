@@ -15,6 +15,7 @@ import com.agony.picturebackend.model.vo.LoginUserVO;
 import com.agony.picturebackend.model.vo.UserVO;
 import com.agony.picturebackend.service.UserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,6 +66,7 @@ public class UserController {
      * @param request          http请求
      * @return 脱敏后的用户登录信息
      */
+    @ApiOperation(value = "用户登录")
     @PostMapping("/login")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
 
