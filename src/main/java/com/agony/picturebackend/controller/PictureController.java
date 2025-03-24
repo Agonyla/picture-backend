@@ -1,5 +1,6 @@
 package com.agony.picturebackend.controller;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.agony.picturebackend.annotation.AuthCheck;
 import com.agony.picturebackend.common.BaseResponse;
@@ -22,6 +23,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author: Agony
@@ -49,6 +53,10 @@ public class PictureController {
 
     @Resource
     private UserService userService;
+
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 上传图片 （可重新上传）
@@ -249,6 +257,52 @@ public class PictureController {
                 pictureService.getQueryWrapper(pictureQueryRequest));
         // 获取封装类
         return ResultUtils.success(pictureService.getPictureVOPage(picturePage, request));
+    }
+
+
+    /**
+     * 分页获取图片列表（封装类） 缓存查找
+     *
+     * @param pictureQueryRequest 图片查询请求
+     * @param request             http请求
+     * @return
+     */
+    @PostMapping("/list/page/vo/cache")
+    public BaseResponse<Page<PictureVO>> listPictureVOByPageByCache(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+        long current = pictureQueryRequest.getCurrent();
+        long size = pictureQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+
+        // 普通用户默认只能看到审核通过的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.ACCEPT.getValue());
+
+
+        // 查询缓存，缓存中没有，再查询数据库
+        // 构造缓存的key
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cachedKey = String.format("picture:listPictureVOByPage:%s", hashKey);
+        String cachedVal = stringRedisTemplate.opsForValue().get(cachedKey);
+        if (cachedVal != null) {
+            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedVal, Page.class);
+            return ResultUtils.success(cachedPage);
+        }
+
+        // 查询数据库
+        Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
+                pictureService.getQueryWrapper(pictureQueryRequest));
+        Page<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage, request);
+
+        // 更新缓存
+        cachedVal = JSONUtil.toJsonStr(pictureVOPage);
+        // 设置缓存的过期时间，5 - 10 分钟过期，防止缓存雪崩
+        int cacheEx = 300 + RandomUtil.randomInt(0, 300);
+        stringRedisTemplate.opsForValue().set(cachedKey, cachedVal, cacheEx, TimeUnit.SECONDS);
+
+
+        // 获取封装类
+        return ResultUtils.success(pictureVOPage);
     }
 
 

@@ -8,6 +8,7 @@ class PictureBackendApplicationTests {
 
     @Test
     void contextLoads() {
+        System.out.println("nanan");
     }
 
 }
