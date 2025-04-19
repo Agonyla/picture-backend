@@ -23,6 +23,10 @@ public class PictureBackendApplication {
 
 
         // todo 关于后端模板设计模式那里，yupi是直接使用了Object，是否可以改成泛型
+
+        // todo spaceService里面的校验试一下用 注解@Max @Null等等能不能生效
+
+        // todo imageSearch 的时候 用bing提供的api和 抓取请求url的试一下
     }
 
 }
