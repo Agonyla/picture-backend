@@ -31,6 +31,12 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Spring Session + Redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
 
         <!--        不需要再引入 (引入mybatis-plus之后不需要再次引入mybatis 以及 mybatis-spring-boot-starter和MyBatis-Spring，以避免因版本差异导致的问题 )-->
         <!--        <dependency>-->

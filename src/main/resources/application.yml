@@ -3,10 +3,20 @@ server:
   servlet:
     context-path: /api
 
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 259200
+
 
 spring:
   application:
     name: picture-backend
+
+  # session 配置
+  session:
+    store-type: redis
+    timeout: 259200 # 30天过期
 
   # 激活的配置文件
   profiles:
