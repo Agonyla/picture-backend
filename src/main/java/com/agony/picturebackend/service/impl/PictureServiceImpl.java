@@ -5,6 +5,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.agony.picturebackend.api.aliyun.model.AliYunAiApi;
+import com.agony.picturebackend.api.aliyun.model.CreateOutPaintingTaskRequest;
+import com.agony.picturebackend.api.aliyun.model.CreateOutPaintingTaskResponse;
 import com.agony.picturebackend.exception.BusinessException;
 import com.agony.picturebackend.exception.ErrorCode;
 import com.agony.picturebackend.exception.ThrowUtils;
@@ -79,6 +82,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
+
 
     @Override
     public void validPicture(Picture picture) {
@@ -606,6 +614,32 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 5. 操作数据库进行批量更新
         boolean result = this.updateBatchById(pictureList);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "批量编辑失败");
+    }
+
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        // 获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在"));
+        // 校验权限
+        checkPictureAuth(loginUser, picture);
+        // 创建扩图任务
+        CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getUrl());
+        createOutPaintingTaskRequest.setInput(input);
+        // 如果没有传入具体扩大倍数，就默认设置两倍
+        CreateOutPaintingTaskRequest.Parameters parameters = createPictureOutPaintingTaskRequest.getParameters();
+        if (parameters.getXScale() == null || parameters.getXScale() == 0) {
+            parameters.setXScale(2.0f);
+        }
+        if (parameters.getYScale() == null || parameters.getYScale() == 0) {
+            parameters.setYScale(2.0f);
+        }
+        createOutPaintingTaskRequest.setParameters(parameters);
+        // 创建任务
+        return aliYunAiApi.createOutPaintingTask(createOutPaintingTaskRequest);
     }
 
     /**

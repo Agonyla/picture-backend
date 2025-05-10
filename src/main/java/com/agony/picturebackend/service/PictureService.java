@@ -1,5 +1,6 @@
 package com.agony.picturebackend.service;
 
+import com.agony.picturebackend.api.aliyun.model.CreateOutPaintingTaskResponse;
 import com.agony.picturebackend.model.dto.picture.*;
 import com.agony.picturebackend.model.entity.Picture;
 import com.agony.picturebackend.model.entity.User;
@@ -143,4 +144,13 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
+
+
+    /**
+     * 创建扩图任务
+     *
+     * @param createPictureOutPaintingTaskRequest
+     * @param loginUser
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
 }
