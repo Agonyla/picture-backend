@@ -58,5 +58,10 @@ public class UploadPictureResult implements Serializable {
      */
     private String picFormat;
 
+    /**
+     * 图片主色调
+     */
+    private String picColor;
+
 
 }
