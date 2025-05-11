@@ -30,7 +30,8 @@ public class ImageSearchApiFacade {
     }
 
     public static void main(String[] args) {
-        List<ImageSearchResult> imageList = searchImage("https://www.codefather.cn/logo.png");
+        // List<ImageSearchResult> imageList = searchImage("https://www.codefather.cn/logo.png");
+        List<ImageSearchResult> imageList = searchImage("https://wx3.sinaimg.cn/mw690/007cCWrJgy1hte7hqaqj8j30m818ggnx.jpg");
         System.out.println("结果列表" + imageList);
     }
 }

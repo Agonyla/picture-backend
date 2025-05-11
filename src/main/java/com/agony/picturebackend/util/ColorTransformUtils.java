@@ -1,5 +1,7 @@
 package com.agony.picturebackend.util;
 
+import cn.hutool.core.io.FileUtil;
+
 /**
  * @author: Agony
  * @create: 2025/5/10 20:50
@@ -79,5 +81,8 @@ public class ColorTransformUtils {
         System.out.println(expandHexColor("0ab0"));    // 0x00ab00
         System.out.println(expandHexColor("00ab"));   // 0x0000ab
         System.out.println(expandHexColor("0ab00"));  // 0x00ab00
+
+        String url = "https://www.codefather.cn/logo.png";
+        System.out.println(FileUtil.mainName(url));
     }
 }
